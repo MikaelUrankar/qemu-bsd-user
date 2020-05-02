@@ -240,12 +240,11 @@ static inline void target_cpu_loop(CPUPPCState *env)
                           env->error_code);
                 break;
             }
-            info.si_addr = env->nip - 4;
+            info.si_addr = env->nip;
             queue_signal(env, info.si_signo, &info);
             break;
         case POWERPC_EXCP_FPU:      /* Floating-point unavailable exception  */
             env->msr |= (1 << MSR_FP);
-            env->nip -= 4;
 #if 0
             fprintf(stderr, "No floating point allowed\n");
             info.si_signo = TARGET_SIGILL;
@@ -264,7 +263,7 @@ static inline void target_cpu_loop(CPUPPCState *env)
             info.si_signo = TARGET_SIGILL;
             info.si_errno = 0;
             info.si_code = TARGET_ILL_COPROC;
-            info.si_addr = env->nip - 4;
+            info.si_addr = env->nip;
             queue_signal(env, info.si_signo, &info);
             break;
         case POWERPC_EXCP_DECR:     /* Decrementer exception                 */
@@ -292,7 +291,7 @@ static inline void target_cpu_loop(CPUPPCState *env)
             info.si_signo = TARGET_SIGILL;
             info.si_errno = 0;
             info.si_code = TARGET_ILL_COPROC;
-            info.si_addr = env->nip - 4;
+            info.si_addr = env->nip;
             queue_signal(env, info.si_signo, &info);
             break;
         case POWERPC_EXCP_EFPDI:    /* Embedded floating-point data IRQ      */
@@ -353,7 +352,6 @@ static inline void target_cpu_loop(CPUPPCState *env)
             break;
         case POWERPC_EXCP_VPU:      /* Vector unavailable exception          */
             env->msr |= (1 << MSR_VR);
-            env->nip -= 4;
 #if 0
             fprintf(stderr, "No Altivec instructions allowed\n");
             info.si_signo = TARGET_SIGILL;
@@ -439,9 +437,9 @@ static inline void target_cpu_loop(CPUPPCState *env)
                    Avoid corrupting register state.  */
                 break;
             } else if (ret == (target_ulong)(-TARGET_ERESTART)) {
-                env->nip -= 4;
                 break;
             }
+            env->nip += 4;
             if (ret > (target_ulong)(-515)) {
                 env->crf[0] |= 0x1;
                 ret = -ret;
